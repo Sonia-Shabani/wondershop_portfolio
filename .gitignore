@@ -1,0 +1,21 @@
+# Data files (do NOT commit raw data)
+*.csv
+*.xlsx
+
+# Local configs / secrets
+.env
+*.secret
+*.key
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+*.log
