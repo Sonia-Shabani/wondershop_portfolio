@@ -10,6 +10,7 @@ The project is designed as a **portfolio project** to showcase practical data wa
 
 ## Architecture
 The warehouse follows a classic **layered architecture**:
+```text
 Source CSV Files
 |
 v
@@ -154,4 +155,5 @@ Serve as a portfolio project for data engineering / analytics roles
    
 Sonia Shabani
 GitHub: https://github.com/Sonia-Shabani   
+
 
