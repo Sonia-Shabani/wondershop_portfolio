@@ -90,6 +90,7 @@ Analytics / Reporting
 ---
 
 ## Repository Structure
+```text
 wondershop_portfolio/
 │
 ├── sql/
@@ -153,3 +154,4 @@ Serve as a portfolio project for data engineering / analytics roles
    
 Sonia Shabani
 GitHub: https://github.com/Sonia-Shabani   
+
