@@ -1,5 +1,5 @@
 -- ============================
--- 03_load_staging_product.sql
+-- 03_1_stg_load_product.sql
 -- Load product file into staging.product_raw (append-only)
 -- ============================
 
@@ -7,9 +7,9 @@
 \set source_file '<PUT_FILE_NAME_HERE>.csv'
 
 -- 1) temp load table
-DROP TABLE IF EXISTS staging.product_raw_load;
+DROP TABLE IF EXISTS product_raw_load;
 
-CREATE TABLE staging.product_raw_load (
+CREATE TEMP TABLE product_raw_load (
   product_number   text,
   product_name     text,
   classification1  text,
@@ -25,7 +25,7 @@ CREATE TABLE staging.product_raw_load (
 );
 
 -- 2) copy csv -> temp table
-\copy staging.product_raw_load (
+\copy product_raw_load (
   product_number,
   product_name,
   classification1,
@@ -39,8 +39,9 @@ CREATE TABLE staging.product_raw_load (
   uvp_eu,
   franchise_price
 )
-FROM :'file_path'
+FROM:'file_path'
 WITH (FORMAT csv, HEADER true, ENCODING 'UTF8');
+
 
 -- 3) insert into raw staging + source_file
 INSERT INTO staging.product_raw (
@@ -72,11 +73,12 @@ SELECT
   uvp_eu,
   franchise_price,
   :'source_file'
-FROM staging.product_raw_load;
+FROM product_raw_load;
 
-SELECT count(*) FROM staging.order_raw;
-SELECT count(*) FROM staging.product_raw;
-SELECT count(*) FROM staging.stock_raw;
+SELECT COUNT(*) FROM product_raw_load;
 
-SELECT country, count(*) FROM staging.order_raw GROUP BY country;
-SELECT country, count(*) FROM staging.stock_raw GROUP BY country;
+SELECT source_file, COUNT(*)
+FROM staging.product_raw
+GROUP BY source_file;
+
+select * from staging.product_raw;

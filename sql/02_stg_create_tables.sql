@@ -35,36 +35,11 @@ CREATE INDEX IF NOT EXISTS ix_order_raw_order_id
 CREATE INDEX IF NOT EXISTS ix_order_raw_product_number
   ON staging.order_raw (product_number);
 
-
--- ----------------------------
--- PRODUCT RAW (ABAS export)
--- ----------------------------
-CREATE TABLE IF NOT EXISTS staging.product_raw (
-  product_number   text,
-  product_name     text,
-  classification1  text,
-  classification2  text,
-  classification3  text,
-  season           text,
-  discontinued     text,             -- raw flag (cast later)
-  bestseller_abas  text,             -- raw flag (cast later)
-  kf               text,             -- raw flag (cast later)
-  uvp_de           text,             -- raw numeric
-  uvp_eu           text,             -- raw numeric
-  franchise_price  text,             -- raw numeric
-  source_file      text,
-  ingested_at      timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS ix_product_raw_product_number
-  ON staging.product_raw (product_number);
-
-
 -- ----------------------------
 -- STOCK RAW (monthly snapshot input)
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS staging.stock_raw (
-  country        text,              -- if stock is by country; otherwise can be NULL
+  country        text,              -- e.g. BG / SE / HR (set at load time)
   product_number text,
   sellable_stock text,              -- from: stockSellableStock (raw)
   source_file    text,
@@ -77,8 +52,9 @@ CREATE INDEX IF NOT EXISTS ix_stock_raw_product_number
 CREATE INDEX IF NOT EXISTS ix_stock_raw_country
   ON staging.stock_raw (country);
 
--- PRODUCT raw
-DROP TABLE IF EXISTS staging.product_raw;
+-- ----------------------------
+-- Product raw
+-- ----------------------------
 CREATE TABLE IF NOT EXISTS staging.product_raw (
   product_number   TEXT,
   product_name     TEXT,
@@ -92,27 +68,13 @@ CREATE TABLE IF NOT EXISTS staging.product_raw (
   uvp_de           TEXT,
   uvp_eu           TEXT,
   franchise_price  TEXT,
+  source_file      TEXT,
   load_run_ts      TIMESTAMPTZ DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS ix_product_raw_product_number
+  ON staging.product_raw (product_number);
 
-SELECT country, count(*) AS count
-FROM staging.order_raw t
-WHERE productname <> 'Delivery Fee'
-GROUP BY country
-ORDER BY country;
 
-SELECT DISTINCT overallstatusname FROM staging.order_raw;
 
---stock raw
-DROP TABLE IF EXISTS staging.stock_raw;
-CREATE TABLE IF NOT EXISTS staging.stock_raw (
-product_number text, 
-stock text);
 
--- Creating index for speed
-
-CREATE INDEX IF NOT EXISTS ix_order_raw_productnumber ON staging.order_raw(productNumber);
-CREATE INDEX IF NOT EXISTS ix_order_raw_country ON staging.order_raw(country);
-CREATE INDEX IF NOT EXISTS ix_order_raw_createdat ON staging.order_raw(createdAt);
-CREATE INDEX IF NOT EXISTS ix_product_raw_productnumber ON staging.product_raw(product_number);

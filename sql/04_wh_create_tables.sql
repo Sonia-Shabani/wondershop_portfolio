@@ -65,48 +65,41 @@ CREATE TABLE IF NOT EXISTS warehouse.map_order_status (
 -- SALES CURRENT (clean/current layer)
 --  این جدول "آخرین نسخه" هر order line را نگه می‌دارد
 -- =========================
-CREATE TABLE IF NOT EXISTS warehouse.sales_current (
+CREATE TABLE IF NOT EXISTS warehouse.sales (
   business_key_hash text PRIMARY KEY,          -- unique key for upsert
   change_hash       text NOT NULL,             -- detect real change
-
   country_code      text NOT NULL,
   order_id          text NOT NULL,
   product_number    text NOT NULL,
-
   order_number         text,
   raw_status           text,
   status_std           text,
   channel_name         text,
   product_name         text,
   manufacturer         text,
-
   created_at           timestamp,
   promised_delivery_at date,
-
   quantity             numeric(18,4),
   unit_price           numeric(18,4),
-
   source_file          text,
   last_ingested_at     timestamptz NOT NULL DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS ix_sales_current_country_created
-  ON warehouse.sales_current (country_code, created_at);
+CREATE INDEX IF NOT EXISTS ix_sales_country_created
+  ON warehouse.sales (country_code, created_at);
 
-CREATE INDEX IF NOT EXISTS ix_sales_current_product_number
-  ON warehouse.sales_current (product_number);
+CREATE INDEX IF NOT EXISTS ix_sales_product_number
+  ON warehouse.sales (product_number);
 
 -- =========================
 -- STOCK SNAPSHOT (monthly)
 -- =========================
-CREATE TABLE IF NOT EXISTS warehouse.stock_snapshot (
+CREATE TABLE IF NOT EXISTS warehouse.stock (
   snapshot_month  date NOT NULL,               -- e.g. 2026-01-01
   country_code    text,
   product_number  text NOT NULL,
   sellable_stock  numeric(18,4),
-
   source_file     text,
   ingested_at     timestamptz NOT NULL DEFAULT now(),
-
   PRIMARY KEY (snapshot_month, country_code, product_number)
 );

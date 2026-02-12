@@ -1,5 +1,5 @@
 -- ============================
--- 03_load_staging_stock.sql
+-- 03_3_load_staging_stock.sql
 -- Load stock file into staging.stock_raw (append-only)
 -- ============================
 
@@ -8,15 +8,15 @@
 \set source_file '<PUT_FILE_NAME_HERE>.csv'
 
 -- 1) temp load table
-DROP TABLE IF EXISTS staging.stock_raw_load;
+DROP TABLE IF EXISTS stock_raw_load;
 
-CREATE TABLE staging.stock_raw_load (
+CREATE TEMP TABLE stock_raw_load (
   productnumber       text,
   stocksellablestock  text
 );
 
 -- 2) copy csv -> temp table
-\copy staging.stock_raw_load (
+\copy stock_raw_load (
   productnumber,
   stocksellablestock
 )
@@ -35,11 +35,8 @@ SELECT
   productnumber,
   stocksellablestock,
   :'source_file'
-FROM staging.stock_raw_load;
+FROM stock_raw_load;
 
-SELECT count(*) FROM staging.order_raw;
-SELECT count(*) FROM staging.product_raw;
 SELECT count(*) FROM staging.stock_raw;
 
-SELECT country, count(*) FROM staging.order_raw GROUP BY country;
-SELECT country, count(*) FROM staging.stock_raw GROUP BY country;
+SELECT source_file, country, count(*) FROM staging.stock_raw GROUP BY source_file, country;

@@ -1,4 +1,4 @@
-INSERT INTO warehouse.sales_current AS w (
+INSERT INTO warehouse.sales AS w (
   business_key_hash,
   change_hash,
   country_code,
@@ -31,8 +31,7 @@ SELECT
     coalesce(s.order_id,'') || '|' ||
     coalesce(s.product_number,'')
   ) AS business_key_hash,
-
-  -- ==========================================================
+ -- ==========================================================
   -- Change detection hash
   -- Purpose:
   --   Detects whether meaningful attributes have changed.
@@ -46,21 +45,18 @@ SELECT
     coalesce(s.unit_price,'') || '|' ||
     coalesce(s.promised_delivery_at,'')
   ) AS change_hash,
-
   -- ==========================================================
   -- Natural business attributes
   -- ==========================================================
   s.country            AS country_code,
   s.order_id,
   s.product_number,
-
   s.order_number,
   s.overall_status_name AS raw_status,
   m.status_std          AS status_std,
   s.channel_name,
   s.product_name,
   s.manufacturer,
-
   -- ==========================================================
   -- Date and numeric normalization
   -- ==========================================================
@@ -68,30 +64,24 @@ SELECT
   NULLIF(s.promised_delivery_at,'')::date AS promised_delivery_at,
   NULLIF(s.quantity,'')::numeric           AS quantity,
   NULLIF(s.unit_price,'')::numeric         AS unit_price,
-
-  -- ==========================================================
+ -- ==========================================================
   -- Metadata / audit columns
   -- ==========================================================
   s.source_file,
   now() AS last_ingested_at
-
 FROM staging.order_raw s
-
 -- ==========================================================
 -- Map raw order statuses to standardized status codes
 -- ==========================================================
 LEFT JOIN warehouse.map_order_status m
   ON trim(s.overall_status_name) = m.raw_status
-
 WHERE
   -- Exclude non-product rows
   s.product_name <> 'Delivery Fee'
-
   -- Reprocess only the current and previous month
   -- This supports late-arriving updates without scanning all history
   AND NULLIF(s.created_at,'')::date >=
       (date_trunc('month', current_date) - interval '1 month')::date
-
 ON CONFLICT (business_key_hash) DO UPDATE
 SET
   -- ==========================================================
@@ -110,8 +100,9 @@ SET
   unit_price            = EXCLUDED.unit_price,
   source_file           = EXCLUDED.source_file,
   last_ingested_at      = now()
-
 WHERE
   -- Prevent unnecessary writes when nothing changed
-  warehouse.sales_current.change_hash
+  w.change_hash
     IS DISTINCT FROM EXCLUDED.change_hash;
+
+select * from warehouse.sales s ;

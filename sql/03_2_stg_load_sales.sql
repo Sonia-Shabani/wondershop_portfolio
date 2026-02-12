@@ -1,5 +1,5 @@
 -- ============================
--- 03_load_staging_sales.sql
+-- 03_2_load_staging_sales.sql
 -- Load 1 file into staging.order_raw (append-only)
 -- ============================
 
@@ -8,9 +8,9 @@
 \set source_file '<PUT_FILE_NAME_HERE>.csv'
 
 -- 1) temp load table (matches CSV columns)
-DROP TABLE IF EXISTS staging.order_raw_load;
+DROP TABLE IF EXISTS order_raw_load;
 
-CREATE TABLE staging.order_raw_load (
+create TEMP TABLE order_raw_load (
   id                   text,
   ordernumber          text,
   overallstatusname    text,
@@ -25,7 +25,7 @@ CREATE TABLE staging.order_raw_load (
 );
 
 -- 2) copy csv -> temp table
-\copy staging.order_raw_load (
+\copy order_raw_load (
   id, ordernumber, overallstatusname, channelname, productnumber,
   productname, quantity, unitprice, promiseddeliveryat, manufacturer, createdat
 )
@@ -62,11 +62,10 @@ SELECT
   manufacturer,
   createdat,
   :'source_file'
-FROM staging.order_raw_load;
+FROM order_raw_load;
 
 SELECT count(*) FROM staging.order_raw;
-SELECT count(*) FROM staging.product_raw;
-SELECT count(*) FROM staging.stock_raw;
 
-SELECT country, count(*) FROM staging.order_raw GROUP BY country;
-SELECT country, count(*) FROM staging.stock_raw GROUP BY country;
+
+SELECT source_file, country, count(*) FROM staging.order_raw GROUP BY source_file, country;
+

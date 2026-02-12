@@ -1,5 +1,5 @@
 /* ============================================================
-   08_data_quality_checks.sql
+   06_data_quality_checks.sql
    Data Quality Checks for WonderShop DWH (PostgreSQL)
 
    Covers:

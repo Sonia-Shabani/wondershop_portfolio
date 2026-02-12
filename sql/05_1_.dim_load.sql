@@ -1,4 +1,4 @@
-* ============================================================
+/* ============================================================
    Load Dimensions (Idempotent / Safe to run repeatedly)
 
    - dim_country : static lookup table (country & currency)
@@ -110,40 +110,35 @@ SELECT
   NULLIF(trim(classification2), '')             AS category2,
   NULLIF(trim(classification3), '')             AS category3,
   NULLIF(trim(season), '')                      AS season,
-
   -- Normalize discontinued flag
   CASE
     WHEN lower(trim(discontinued)) IN ('@','ja','yes','y','true','1') THEN TRUE
     WHEN lower(trim(discontinued)) IN ('active','nein','no','n','false','0') THEN FALSE
     ELSE NULL
   END                                           AS discontinued,
-
   -- Normalize bestseller flag
   CASE
     WHEN lower(trim(bestseller_abas)) IN ('yes','ja','y','true','1') THEN TRUE
-    WHEN lower(trim(bestseller_abas)) IN ('no','nein','n','false','0') THEN FALSE
+    WHEN lower(trim(bestseller_abas)) IN ('no','nein','n','false','0',' ') THEN FALSE
     ELSE NULL
   END                                           AS bestseller_abas,
-
   -- Normalize kf flag
   CASE
     WHEN lower(trim(kf)) IN ('ja','yes','y','true','1') THEN TRUE
     WHEN lower(trim(kf)) IN ('nein','no','n','false','0') THEN FALSE
     ELSE NULL
   END                                           AS kf,
-
   -- Clean currency symbols and cast to numeric
   NULLIF(trim(replace(replace(uvp_de,'€',''),',','')), '-')::numeric          AS uvp_de,
   NULLIF(trim(replace(replace(uvp_eu,'€',''),',','')), '-')::numeric          AS uvp_eu,
   NULLIF(trim(replace(replace(franchise_price,'€',''),',','')), '-')::numeric AS franchise_price
-
 FROM (
   -- Select the most recently ingested record per product_number
   SELECT DISTINCT ON (product_number) *
   FROM staging.product_raw
   WHERE product_number IS NOT NULL
     AND trim(product_number) <> ''
-  ORDER BY product_number, ingested_at DESC
+  ORDER BY product_number, load_run_ts DESC
 ) p
 ON CONFLICT (product_number) DO UPDATE
 SET
@@ -159,4 +154,5 @@ SET
   uvp_eu           = EXCLUDED.uvp_eu,
   franchise_price  = EXCLUDED.franchise_price,
   last_updated_at  = now();
+
 
