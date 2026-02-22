@@ -14,6 +14,7 @@ SELECT
   --   current calendar month (YYYY-MM-01).
   -- ==========================================================
   date_trunc('month', current_date)::date AS snapshot_month,
+
   -- ==========================================================
   -- Country code
   -- Source:
@@ -52,4 +53,6 @@ SET
   sellable_stock = EXCLUDED.sellable_stock,
   source_file    = EXCLUDED.source_file,
   ingested_at    = now();
+
+
 

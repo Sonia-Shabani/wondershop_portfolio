@@ -8,12 +8,11 @@ INSERT INTO warehouse.sales AS w (
   raw_status,
   status_std,
   channel_name,
-  product_name,
-  manufacturer,
   created_at,
   promised_delivery_at,
   quantity,
   unit_price,
+  order_value,
   source_file,
   last_ingested_at
 )
@@ -48,22 +47,23 @@ SELECT
   -- ==========================================================
   -- Natural business attributes
   -- ==========================================================
-  s.country            AS country_code,
+  s.country           AS country_code,
   s.order_id,
   s.product_number,
   s.order_number,
   s.overall_status_name AS raw_status,
   m.status_std          AS status_std,
   s.channel_name,
-  s.product_name,
-  s.manufacturer,
   -- ==========================================================
   -- Date and numeric normalization
   -- ==========================================================
-  NULLIF(s.created_at,'')::timestamp       AS created_at,
-  NULLIF(s.promised_delivery_at,'')::date AS promised_delivery_at,
-  NULLIF(s.quantity,'')::numeric           AS quantity,
-  NULLIF(s.unit_price,'')::numeric         AS unit_price,
+  NULLIF(NULLIF(trim(s.created_at),''),'N/A')::timestamp             AS created_at,
+  NULLIF(NULLIF(trim(s.promised_delivery_at),''),'N/A')::date        AS promised_delivery_at,
+  NULLIF(s.quantity,'')::numeric                                     AS quantity,
+    -- Convert unit_price into EUR
+  NULLIF(s.unit_price,'')::numeric * COALESCE(f.avg_rate_to_eur, 1)  AS unit_price,
+  -- Convert order_value into EUR
+  (NULLIF(s.quantity,'')::numeric * NULLIF(s.unit_price,'')::numeric) * COALESCE(f.avg_rate_to_eur, 1) AS order_value,
  -- ==========================================================
   -- Metadata / audit columns
   -- ==========================================================
@@ -75,6 +75,11 @@ FROM staging.order_raw s
 -- ==========================================================
 LEFT JOIN warehouse.map_order_status m
   ON trim(s.overall_status_name) = m.raw_status
+LEFT JOIN warehouse.dim_country c
+    ON s.country = c.country_code
+LEFT JOIN warehouse.fx_rates_monthly f
+    ON c.currency_code = f.currency_code
+	AND f.month_sk = date_trunc('month', NULLIF(NULLIF(trim(s.created_at),''),'N/A')::date)::date
 WHERE
   -- Exclude non-product rows
   s.product_name <> 'Delivery Fee'
@@ -92,8 +97,6 @@ SET
   raw_status            = EXCLUDED.raw_status,
   status_std            = EXCLUDED.status_std,
   channel_name          = EXCLUDED.channel_name,
-  product_name          = EXCLUDED.product_name,
-  manufacturer          = EXCLUDED.manufacturer,
   created_at            = EXCLUDED.created_at,
   promised_delivery_at  = EXCLUDED.promised_delivery_at,
   quantity              = EXCLUDED.quantity,
@@ -105,4 +108,3 @@ WHERE
   w.change_hash
     IS DISTINCT FROM EXCLUDED.change_hash;
 
-select * from warehouse.sales s ;

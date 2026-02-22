@@ -3,8 +3,7 @@
 -- Load 1 file into staging.order_raw (append-only)
 -- ============================
 
-\set country 'BG'
-\set file_path 'C:/Users/sshab/wondershop_data/sales/BG/2024_2025/<PUT_FILE_NAME_HERE>.csv'
+\set country 'XX'
 \set source_file '<PUT_FILE_NAME_HERE>.csv'
 
 -- 1) temp load table (matches CSV columns)
@@ -29,7 +28,7 @@ create TEMP TABLE order_raw_load (
   id, ordernumber, overallstatusname, channelname, productnumber,
   productname, quantity, unitprice, promiseddeliveryat, manufacturer, createdat
 )
-FROM :'file_path'
+FROM 'C:/Users/sshab/wondershop_data/sales/XX/2024_2025/<PUT_FILE_NAME_HERE>.csv'
 WITH (FORMAT csv, HEADER true, ENCODING 'UTF8');
 
 -- 3) insert into raw staging + add country + source_file
@@ -64,8 +63,6 @@ SELECT
   :'source_file'
 FROM order_raw_load;
 
-SELECT count(*) FROM staging.order_raw;
 
 
-SELECT source_file, country, count(*) FROM staging.order_raw GROUP BY source_file, country;
 

@@ -4,7 +4,6 @@
 -- ============================
 
 \set country 'BG'
-\set file_path 'C:/Users/sshab/wondershop_data/stock/BG/<PUT_FILE_NAME_HERE>.csv'
 \set source_file '<PUT_FILE_NAME_HERE>.csv'
 
 -- 1) temp load table
@@ -20,7 +19,7 @@ CREATE TEMP TABLE stock_raw_load (
   productnumber,
   stocksellablestock
 )
-FROM :'file_path'
+FROM :'C:/Users/sshab/wondershop_data/stock/XX/2026/stock_XX_01_19_2026.csv'
 WITH (FORMAT csv, HEADER true, ENCODING 'UTF8');
 
 -- 3) insert into raw staging + country + source_file
@@ -37,6 +36,5 @@ SELECT
   :'source_file'
 FROM stock_raw_load;
 
-SELECT count(*) FROM staging.stock_raw;
 
-SELECT source_file, country, count(*) FROM staging.stock_raw GROUP BY source_file, country;
+
